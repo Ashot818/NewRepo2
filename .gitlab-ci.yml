@@ -1,0 +1,33 @@
+stages:
+  - build
+  - test
+  #- deploy  # Added deploy stage
+
+variables:
+  DOTNET_VERSION: "9.0"
+
+before_script:
+  - apt-get update && apt-get install -y wget ca-certificates
+  - wget https://download.visualstudio.microsoft.com/download/pr/3606de37-1325-4f5f-bbe9-1bc44b3c1c7f/91872629e9f0c205cace9c462d5e89a4/dotnet-sdk-9.0.200-linux-x64.tar.gz
+  - tar -xvf dotnet-sdk-9.0.200-linux-x64.tar.gz
+  - export PATH=$PATH:$HOME/dotnet
+
+build:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:9.0
+  script:
+    - dotnet build --configuration Release
+    - dotnet publish --configuration Release -o /build-output
+  artifacts:
+    paths:
+      - /build-output
+
+test:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:9.0
+  script:
+    - dotnet test --configuration Release --no-restore
+  dependencies:
+    - build
+  only:
+    - master

@@ -1,0 +1,86 @@
+﻿@page "/login"
+@using Microsoft.AspNetCore.Components
+@using MudBlazor
+@using dotnetBlazorFullStuck.Web.Components.Client
+@using dotnetBlazorFullStuck.Web.Components.Models
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject dotnetBlazorFullStuck.Web.Components.Client.AuthClient AuthClient
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-16">
+    <MudPaper Elevation="8" Class="pa-8">
+        <MudText Typo="Typo.h4" Class="mb-6">Login</MudText>
+
+        <EditForm Model="@loginFormModel" OnValidSubmit="HandleValidSubmit">
+            <MudTextField @bind-Value="loginFormModel.Email"
+                          Label="Email"
+                          Required="true"
+                          RequiredError="Email is required"
+                          For="@(() => loginFormModel.Email)"
+                          FullWidth="true"
+                          Class="mb-4" />
+
+            <MudTextField @bind-Value="loginFormModel.Password"
+                          Label="Password"
+                          Required="true"
+                          RequiredError="Password is required"
+                          For="@(() => loginFormModel.Password)"
+                          InputType="InputType.Password"
+                          FullWidth="true"
+                          Class="mb-4" />
+
+            <MudButton ButtonType="ButtonType.Submit"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       FullWidth="true"
+                       Class="mt-4">
+                Login
+            </MudButton>
+        </EditForm>
+
+        <MudText Typo="Typo.body2" Class="mt-4">
+            Don't have an account? <MudLink Href="/register">Register here</MudLink>
+        </MudText>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private LoginFormModel loginFormModel = new();
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            // Call the LoginAsync method from your authentication service
+
+            var response = await AuthClient.LoginAsync(loginFormModel);
+
+            // Check if the response indicates a successful login
+            if (!string.IsNullOrEmpty(response))
+            {
+                // Display a success message
+                Snackbar.Add("Login successful!", Severity.Success);
+
+                // Navigate to the home page or dashboard after successful login
+                NavigationManager.NavigateTo("/");
+            }
+            else
+            {
+                // Display an error message if the response is empty or invalid
+                Snackbar.Add("Login failed: Invalid credentials", Severity.Error);
+            }
+        }
+        catch (HttpRequestException httpEx)
+        {
+            // Handle HTTP request errors (e.g., network issues, server errors)
+            Snackbar.Add($"Login failed: {httpEx.Message}", Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            // Handle any other exceptions
+            Snackbar.Add($"Login failed: {ex.Message}", Severity.Error);
+        }
+    }
+
+    
+}

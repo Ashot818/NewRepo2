@@ -1,0 +1,70 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using dotnetBlazorFullStuck.Web.Components.Models
+@inject dotnetBlazorFullStuck.Web.Components.Client.AuthClient AuthClient
+@inject HttpClient HttpClient
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+@page "/register"
+@rendermode InteractiveServer
+
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-10">
+    <MudPaper Elevation="10" Class="pa-8">
+        <MudText Typo="Typo.h4" Class="mb-4">Register</MudText>
+
+        <EditForm Model="@registerFormModel" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <MudTextField @bind-Value="registerFormModel.FirstName" Label="First Name" Required="true" />
+            <MudTextField @bind-Value="registerFormModel.LastName" Label="Last Name" Required="true" />
+            <MudTextField @bind-Value="registerFormModel.Gender" Label="Gender" Required="true" />
+            <MudTextField @bind-Value="registerFormModel.Email" Label="Email" Required="true" />
+            <MudTextField @bind-Value="registerFormModel.Password" Label="Password" Required="true" InputType="InputType.Password" />
+
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="mt-4">
+                Register
+            </MudButton>
+        </EditForm>
+    </MudPaper>
+</MudContainer>
+
+
+@code {
+    RegisterFormModel registerFormModel = new RegisterFormModel();
+    bool success;
+    string responseMessage = string.Empty;
+
+    private async Task HandleValidSubmit()
+    {
+        // Create a UserRegisterDto object from the form model
+        var userRegisterModel = new UserRegisterModel
+            {
+                FirstName = registerFormModel.FirstName,
+                LastName = registerFormModel.LastName,
+                Gender = registerFormModel.Gender,
+                Email = registerFormModel.Email,
+                Password = registerFormModel.Password
+            };
+
+    // Call the RegisterAsync method from AuthClient
+    var response = await AuthClient.RegisterAsync(userRegisterModel);
+
+        // Handle the response (e.g., display a message to the user)
+        responseMessage = response;
+        try
+        {
+            Snackbar.Add("User created successfully", Severity.Success);
+            //resest all field after successful registration
+            registerFormModel = new RegisterFormModel();
+
+            NavigationManager.NavigateTo("/login");
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Error creating User", Severity.Error);
+        }
+
+    }
+}
